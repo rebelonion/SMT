@@ -1,5 +1,9 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
 using System.Xml.Serialization;
 
@@ -106,6 +110,11 @@ namespace SMT
         private bool m_overlayShowNPCKills = true;
         private bool m_overlayShowNPCKillDelta = true;
         private bool m_overlayShowRoute = true;
+
+        // Sounds settings
+        private bool m_EnableCustomSounds = false;
+        private ObservableCollection<SoundObject> m_CustomSounds = new ObservableCollection<SoundObject>();
+        private int m_NumCustomSounds = 1;
 
         public MapConfig()
         {
@@ -1204,6 +1213,106 @@ namespace SMT
                 OnPropertyChanged("ZkillExpireTimeMinutes");
             }
         }
+
+        [Category("Sounds")]
+        [DisplayName("Enable Custom Sounds")]
+        public bool EnableCustomSounds
+        {
+            get
+            {
+                return m_EnableCustomSounds;
+            }
+            set
+            {
+                m_EnableCustomSounds = value;
+                OnPropertyChanged("EnableCustomSounds");
+            }
+        }
+
+        [Category("Sounds")]
+        [DisplayName("Number of Custom Sounds")]
+        public int NumCustomSounds
+        {
+            get
+            {
+                return m_NumCustomSounds;
+            }
+            set
+            {
+                if (m_NumCustomSounds != value)
+                {
+                    m_NumCustomSounds = value;
+                    OnPropertyChanged(nameof(NumCustomSounds));
+                    if (CustomSounds.Count != 0)
+                    {
+                        UpdateCustomSounds();
+                    }
+                    
+                }
+            }
+        }
+
+
+        public ObservableCollection<SoundObject> CustomSounds
+        {
+            get
+            {
+                return m_CustomSounds;
+            }
+            set
+            {
+                m_CustomSounds = value;
+                OnPropertyChanged("CustomSounds");
+            }
+        }
+
+       
+
+        private void UpdateCustomSounds()
+        {
+            int currentCount = CustomSounds.Count;
+            if (NumCustomSounds > currentCount)
+            {
+                for (int i = currentCount; i < NumCustomSounds; i++)
+                {
+                    CustomSounds.Add(new SoundObject
+                    {
+                        SoundName = $"Sound {i + 1}",
+                        SoundPath = "",
+                        IsEnabled = false,
+                        UseDefaultSound = true,
+                        NotifyAtAnyDistance = false,
+                        DistanceToNotify = 6,
+                    });
+                }
+            }
+            else if (NumCustomSounds < currentCount)
+            {
+                for (int i = currentCount - 1; i >= NumCustomSounds; i--)
+                {
+                    CustomSounds.RemoveAt(i);
+                }
+            }
+        }
+        public void OpenSoundFile(object sender, RoutedEventArgs e)
+        {
+            Button btn = sender as Button;
+            SoundObject sound = btn.DataContext as SoundObject;
+
+            if (sound != null)
+            {
+                OpenFileDialog openFileDialog = new OpenFileDialog();
+                openFileDialog.Filter = "Sound Files (*.mp3; *.wav)|*.mp3;*.wav";
+                if (openFileDialog.ShowDialog() == true)
+                {
+                    string filePath = openFileDialog.FileName;
+                    string fileName = System.IO.Path.GetFileName(filePath);
+                    sound.SoundName = fileName;
+                    sound.SoundPath = filePath;
+                }
+            }
+        }
+
 
         public bool UseESIForCharacterPositions { get; set; }
 

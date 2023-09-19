@@ -11,6 +11,7 @@
     <Window.Resources>
         <local:JoinStringConverter  x:Key="stringJoiner" />
         <local:NegateBooleanConverter x:Key="NegateBooleanConverter" />
+        <local:InverseNegateBooleanConverter x:Key="InverseNegateBooleanConverter" />
     </Window.Resources>
 
     <Grid Background="{DynamicResource ButtonBorder}" Height="Auto" Width="Auto" HorizontalAlignment="Left" VerticalAlignment="Top">
@@ -342,6 +343,66 @@
                             </StackPanel>
                         </ScrollViewer>
                     </Grid>
+                </TabItem>
+                <TabItem Header="Sounds">
+                    <StackPanel Grid.Column="0">
+                        <GroupBox Header="General" Margin="4" Height="auto">
+                            <StackPanel>
+                                <CheckBox IsChecked="{Binding EnableCustomSounds}" Margin="0,2">Enable Custom Sounds</CheckBox>
+                                <StackPanel Orientation="Horizontal" Margin="0,2">
+                                    <xctk:IntegerUpDown Value="{Binding Path=NumCustomSounds}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0" Width="70" Minimum="1" Maximum="6" Background="Transparent"  Foreground="White" />
+                                    <Label Content="Number of Custom Sounds" />
+                                    <StackPanel.IsEnabled>
+                                        <Binding Path="EnableCustomSounds" Converter="{StaticResource NegateBooleanConverter}" />
+                                    </StackPanel.IsEnabled>
+                                </StackPanel>
+                            </StackPanel>
+                        </GroupBox>
+                        <GroupBox Header="Custom Sounds" Margin="4" Height="auto">
+                            <GroupBox.IsEnabled>
+                                <Binding Path="EnableCustomSounds" Converter="{StaticResource NegateBooleanConverter}" />
+                            </GroupBox.IsEnabled>
+                            <ItemsControl ItemsSource="{Binding Path=CustomSounds}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border BorderThickness="2" BorderBrush="{DynamicResource ButtonBorder}" CornerRadius="5" Padding="5" Margin="5">
+                                            <StackPanel>
+                                                <Label Margin="0,2">
+                                                    <TextBlock>
+                                                        <Run Text="Sound name:"/>
+                                                        <Run Text="{Binding Path=SoundName}"/>
+                                                    </TextBlock>
+                                                </Label>
+                                                <StackPanel Orientation="Horizontal" Margin="0,2">
+                                                    <StackPanel>
+                                                        <CheckBox IsChecked="{Binding NotifyAtAnyDistance}" Margin="0,2">Always play sound on intel</CheckBox>
+                                                        <StackPanel Orientation="Horizontal" Margin="0,2">
+                                                            <Label Content="Notify at " />
+                                                            <xctk:IntegerUpDown Value="{Binding Path=DistanceToNotify}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0" Width="70" Minimum="0" Maximum="6" Background="Transparent"  Foreground="White" >
+                                                                <xctk:IntegerUpDown.IsEnabled>
+                                                                    <Binding Path="NotifyAtAnyDistance" Converter="{StaticResource InverseNegateBooleanConverter}" />
+                                                                </xctk:IntegerUpDown.IsEnabled>
+                                                            </xctk:IntegerUpDown>
+                                                            <Label Content="Jumps" />
+                                                        </StackPanel>
+                                                    </StackPanel>
+                                                    <Rectangle Width="30"/>
+                                                    <StackPanel Orientation="Vertical" Margin="0,2">
+                                                        <CheckBox IsChecked="{Binding  Path=UseDefaultSound}" Margin="0,2">Use default sound</CheckBox>
+                                                        <Button Content=" Open Sound " Click="OpenSound_Click">
+                                                            <Button.IsEnabled>
+                                                                <Binding Path="UseDefaultSound" Converter="{StaticResource InverseNegateBooleanConverter}" />
+                                                            </Button.IsEnabled>
+                                                        </Button>
+                                                    </StackPanel>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </GroupBox>
+                    </StackPanel>
                 </TabItem>
                 <TabItem Header="Debug">
                     <Grid>

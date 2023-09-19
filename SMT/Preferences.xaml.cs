@@ -136,6 +136,11 @@ namespace SMT
             MapConf.CustomEveLogFolderLocation = string.Empty;
             MessageBoxResult result = MessageBox.Show("Restart SMT for the log folder location to take effect", "Please Restart SMT", MessageBoxButton.OK);
         }
+
+        private void OpenSound_Click(object sender, RoutedEventArgs e)
+        {
+            MapConf.OpenSoundFile(sender, e);
+        }
     }
 
     public class JoinStringConverter : IValueConverter
@@ -168,6 +173,31 @@ namespace SMT
                 else
                 {
                     return "False";
+                }
+            }
+
+            return System.Windows.Data.Binding.DoNothing;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class InverseNegateBooleanConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is bool boolValue)
+            {
+                if (boolValue)
+                {
+                    return "False";
+                }
+                else
+                {
+                    return "True";
                 }
             }
 
