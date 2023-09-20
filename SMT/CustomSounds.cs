@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Media;
+using System.Xml.Serialization;
 
 namespace SMT
 {
@@ -12,12 +13,11 @@ namespace SMT
     {
         private string m_soundName;
         private string m_soundPath;
-        private bool m_isEnabled;
         private bool m_useDefaultSound;
         private bool m_notifyAtAnyDistance;
         private int m_distanceToNotify;
-
-        private MediaPlayer mediaPlayer;
+        [XmlIgnore]
+        public MediaPlayer mediaPlayer;
 
         public string SoundName
         {
@@ -41,18 +41,6 @@ namespace SMT
                     m_soundPath = value;
                     OpenSound();
                     OnPropertyChanged(nameof(SoundPath));
-                }
-            }
-        }
-        public bool IsEnabled
-        {
-            get => m_isEnabled;
-            set
-            {
-                if (m_isEnabled != value)
-                {
-                    m_isEnabled = value;
-                    OnPropertyChanged(nameof(IsEnabled));
                 }
             }
         }
@@ -89,10 +77,20 @@ namespace SMT
 
         private void OpenSound()
         {
-            Uri uri = new Uri(SoundPath);
-            mediaPlayer = new MediaPlayer();
-            mediaPlayer.Open(uri);
-            mediaPlayer.Play();
+            try
+            {
+                Uri uri = new Uri(SoundPath);
+                mediaPlayer = new MediaPlayer();
+                mediaPlayer.Open(uri);
+            }
+            catch (System.UriFormatException)
+            {
+                mediaPlayer = null;
+                SoundPath = "";
+                SoundName = "Could not find Sound";
+            }
+            
+            
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

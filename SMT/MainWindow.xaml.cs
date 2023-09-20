@@ -101,6 +101,7 @@ namespace SMT
                     XmlReader xmlr = XmlReader.Create(fs);
 
                     MapConf = (MapConfig)xms.Deserialize(xmlr);
+                    MapConf.CleanCustomSounds();
                     fs.Close();
                 }
                 catch
@@ -1121,7 +1122,6 @@ namespace SMT
         {
             bool playSound = false;
             bool flashWindow = false;
-
             Application.Current.Dispatcher.Invoke((Action)(() =>
             {
                 List<IntelData> removeList = new List<IntelData>();
@@ -1203,16 +1203,51 @@ namespace SMT
             {
                 if (playSound || (!MapConf.PlaySoundOnlyInDangerZone && MapConf.PlayIntelSound))
                 {
-                    mediaPlayer.Stop();
-                    mediaPlayer.Volume = MapConf.IntelSoundVolume;
-                    mediaPlayer.Position = new TimeSpan(0, 0, 0);
-                    mediaPlayer.Play();
+                    if (MapConf.EnableCustomSounds)
+                    {
+                        var relevantSounds = MapConf.CustomSounds.Where(cs =>
+                            id.Systems.Any(system =>
+                                EVEManager.LocalCharacters.Any(localChar =>
+                                    {
+                                        int dist = (localChar.Location == system) ? 0 : Navigation.Navigate(localChar.Location, system, true, true, RoutingMode.Shortest).Count - 1;
+                                        return dist == cs.DistanceToNotify;
+                                    }
+                                )
+                            )
+                        );
+                        foreach (var soundObj in relevantSounds)
+                        {
+                            PlaySound(soundObj, MapConf.IntelSoundVolume, mediaPlayer);
+                        }
+                    }
+                    else
+                    {
+                        PlayMedia(mediaPlayer, MapConf.IntelSoundVolume);
+                    }
                 }
                 if (flashWindow || (!MapConf.FlashWindowOnlyInDangerZone && MapConf.FlashWindow))
                 {
                     FlashWindow.Flash(AppWindow, 5);
                 }
             }), DispatcherPriority.Normal);
+        }
+        private void PlaySound(SoundObject cs, double volume, MediaPlayer defaultPlayer)
+        {
+            if (cs.UseDefaultSound)
+            {
+                PlayMedia(defaultPlayer, volume);
+            }
+            else if (cs.SoundPath != null && cs.mediaPlayer != null)
+            {
+                PlayMedia(cs.mediaPlayer, volume);
+            }
+        }
+        private void PlayMedia(MediaPlayer player, double volume)
+        {
+            player.Stop();
+            player.Volume = volume;
+            player.Position = new TimeSpan(0, 0, 0);
+            player.Play();
         }
 
         private void OnShipDecloaked(string character, string text)

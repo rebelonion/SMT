@@ -114,7 +114,7 @@ namespace SMT
         // Sounds settings
         private bool m_EnableCustomSounds = false;
         private ObservableCollection<SoundObject> m_CustomSounds = new ObservableCollection<SoundObject>();
-        private int m_NumCustomSounds = 1;
+        private int m_NumCustomSounds = 0;
 
         public MapConfig()
         {
@@ -1214,18 +1214,19 @@ namespace SMT
             }
         }
 
+
         [Category("Sounds")]
-        [DisplayName("Enable Custom Sounds")]
-        public bool EnableCustomSounds
+        [DisplayName("Custom Sounds")]
+        public ObservableCollection<SoundObject> CustomSounds
         {
             get
             {
-                return m_EnableCustomSounds;
+                return m_CustomSounds;
             }
             set
             {
-                m_EnableCustomSounds = value;
-                OnPropertyChanged("EnableCustomSounds");
+                m_CustomSounds = value;
+                OnPropertyChanged("CustomSounds");
             }
         }
 
@@ -1243,30 +1244,27 @@ namespace SMT
                 {
                     m_NumCustomSounds = value;
                     OnPropertyChanged(nameof(NumCustomSounds));
-                    if (CustomSounds.Count != 0)
-                    {
-                        UpdateCustomSounds();
-                    }
+                    UpdateCustomSounds();
                     
                 }
             }
         }
 
-
-        public ObservableCollection<SoundObject> CustomSounds
+        [Category("Sounds")]
+        [DisplayName("Enable Custom Sounds")]
+        public bool EnableCustomSounds
         {
             get
             {
-                return m_CustomSounds;
+                return m_EnableCustomSounds;
             }
             set
             {
-                m_CustomSounds = value;
-                OnPropertyChanged("CustomSounds");
+                m_EnableCustomSounds = value;
+                OnPropertyChanged("EnableCustomSounds");
             }
         }
 
-       
 
         private void UpdateCustomSounds()
         {
@@ -1279,14 +1277,13 @@ namespace SMT
                     {
                         SoundName = $"Sound {i + 1}",
                         SoundPath = "",
-                        IsEnabled = false,
                         UseDefaultSound = true,
                         NotifyAtAnyDistance = false,
                         DistanceToNotify = 6,
                     });
                 }
             }
-            else if (NumCustomSounds < currentCount)
+            else if (NumCustomSounds < currentCount && NumCustomSounds > 0)
             {
                 for (int i = currentCount - 1; i >= NumCustomSounds; i--)
                 {
@@ -1309,6 +1306,18 @@ namespace SMT
                     string fileName = System.IO.Path.GetFileName(filePath);
                     sound.SoundName = fileName;
                     sound.SoundPath = filePath;
+                }
+            }
+        }
+
+        public void CleanCustomSounds()
+        {
+            if(CustomSounds.Count > NumCustomSounds)
+            {
+                int numToRemove = CustomSounds.Count - NumCustomSounds;
+                for (int i = 0; i < numToRemove; i++)
+                {
+                    CustomSounds.RemoveAt(0);
                 }
             }
         }
@@ -1426,6 +1435,10 @@ namespace SMT
             IntelFreshTime = 30;
             IntelStaleTime = 120;
             IntelHistoricTime = 600;
+
+            NumCustomSounds = 0;
+            EnableCustomSounds = false;
+            CustomSounds.Clear();
         }
 
         protected void OnPropertyChanged(string name)
